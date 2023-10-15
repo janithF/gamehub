@@ -26,13 +26,16 @@ interface FetchGamesResponse {
 const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState("");
+  const [isLoading,setIsLoading] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
     const fetchGames = async () => {
+      setIsLoading(true);
       try {
         const res = await apiClient.get<FetchGamesResponse>("/games", { signal: controller.signal });
         setGames(res.data.results);
+        setIsLoading(false);
       } catch (err) {
         if (err instanceof CanceledError) return;
         if (err instanceof Error && err.message) {
@@ -40,13 +43,14 @@ const useGames = () => {
         } else {
           setError("Unknown error occured");
         }
+        setIsLoading(false);
       }
     };
     fetchGames();
     return () => controller.abort();
   }, []);
 
-  return { games, error };
+  return { games, error, isLoading };
 };
 
 export default useGames;
